@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-gradient-to-br from-pastel-pink via-pastel-purple to-pastel-blue;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-primary-600 font-semibold px-6 py-3 rounded-2xl shadow-md hover:shadow-lg border-2 border-primary-200 hover:border-primary-300 transform hover:scale-105 transition-all duration-300 ease-in-out;
+  }
+
+  .card {
+    @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out;
+  }
+
+  .card-hover {
+    @apply transform hover:scale-105 hover:-translate-y-2 transition-all duration-300 ease-in-out;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .glassmorphism {
+    @apply bg-white/20 backdrop-blur-md border border-white/30;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+}
+
+/* Print Styles for Coloring Pages */
+@media print {
+  /* Hide everything except coloring pages when printing */
+  header, nav, footer, .no-print {
+    display: none !important;
+  }
+
+  /* Optimize page for printing */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  /* Full page coloring image */
+  .print-coloring-page {
+    width: 100% !important;
+    height: 100vh !important;
+    page-break-after: always;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .print-coloring-page img,
+  .print-coloring-page svg {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  /* Remove shadows, borders, and background colors */
+  * {
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+  }
+
+  /* Ensure black outlines for coloring */
+  .coloring-outline {
+    stroke: black !important;
+    stroke-width: 2px !important;
+    fill: none !important;
+  }
+
+  /* Hide decorative elements */
+  .decorative, .gradient-bg, .glassmorphism {
+    display: none !important;
+  }
+
+  /* Page margins for printing */
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+
+  /* Instructions for coloring pages */
+  .print-instructions {
+    font-size: 10pt;
+    text-align: center;
+    margin-bottom: 20px;
+    color: black !important;
+  }
+}
