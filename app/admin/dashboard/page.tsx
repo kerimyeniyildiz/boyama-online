@@ -16,21 +16,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log('[DASHBOARD] Checking authentication...');
         const response = await fetch('/api/auth/check', {
           credentials: 'include',
         });
         const data = await response.json();
-        console.log('[DASHBOARD] Auth check result:', data);
 
         if (!data.authenticated) {
-          console.log('[DASHBOARD] Not authenticated, redirecting to login...');
           router.replace('/admin');
           return;
         }
-        console.log('[DASHBOARD] Authenticated, loading dashboard...');
       } catch (error) {
-        console.error('[DASHBOARD] Auth check error:', error);
         router.replace('/admin');
         return;
       } finally {

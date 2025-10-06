@@ -44,21 +44,15 @@ function recordLoginAttempt(ip: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[LOGIN] Request received');
-
     // Get client IP for rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
                request.headers.get('x-real-ip') ||
                'unknown';
 
-    console.log('[LOGIN] Client IP:', ip);
-
     // Check rate limit
     const rateLimit = checkRateLimit(ip);
-    console.log('[LOGIN] Rate limit check:', rateLimit);
 
     if (!rateLimit.allowed) {
-      console.log('[LOGIN] Rate limit exceeded');
       return NextResponse.json(
         {
           success: false,
@@ -82,9 +76,7 @@ export async function POST(request: NextRequest) {
       const body = await request.json();
       username = body?.username || '';
       password = body?.password || '';
-      console.log('[LOGIN] Parsed credentials - Username:', username, 'Password length:', password?.length);
     } catch (error) {
-      console.error('[LOGIN] Failed to parse request body:', error);
       return NextResponse.json(
         {
           success: false,
@@ -96,7 +88,6 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!username || !password) {
-      console.log('[LOGIN] Missing username or password');
       recordLoginAttempt(ip);
       return NextResponse.json(
         {
@@ -108,12 +99,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate credentials
-    console.log('[LOGIN] Validating credentials...');
     const isValid = await validateCredentials(username, password);
-    console.log('[LOGIN] Credentials valid:', isValid);
 
     if (!isValid) {
-      console.log('[LOGIN] Invalid credentials');
       recordLoginAttempt(ip);
 
       // Generic error message to prevent user enumeration
@@ -132,9 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    console.log('[LOGIN] Generating JWT token...');
     const token = generateToken(username);
-    console.log('[LOGIN] JWT token generated, length:', token.length);
 
     // Create response with secure cookie
     const response = NextResponse.json({
@@ -142,8 +128,8 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
     });
 
-    // Build cookie string manually for better control
-    // NOTE: Not setting Secure for HTTP testing - will add back for HTTPS
+    // Build cookie string
+    // Note: Secure flag should be enabled when using HTTPS in production
     const cookieParts = [
       `admin-session=${token}`,
       'Path=/',
@@ -152,24 +138,15 @@ export async function POST(request: NextRequest) {
       `Max-Age=${24 * 60 * 60}`,
     ];
 
-    // Don't set Secure flag for now (testing on HTTP domain)
-    // Will need Secure flag when using HTTPS in production
-
     const cookieString = cookieParts.join('; ');
-
-    // Set cookie both ways for maximum compatibility
     response.headers.append('Set-Cookie', cookieString);
-
-    console.log('[LOGIN] Cookie set via header:', cookieString.substring(0, 80) + '...');
-    console.log('[LOGIN] Token preview:', token.substring(0, 30) + '...');
 
     // Clear rate limit on successful login
     loginAttempts.delete(getRateLimitKey(ip));
 
-    console.log('[LOGIN] Login successful, returning response');
     return response;
   } catch (error) {
-    console.error('[LOGIN] Unexpected error:', error);
+    console.error('Login error:', error);
     return NextResponse.json(
       {
         success: false,

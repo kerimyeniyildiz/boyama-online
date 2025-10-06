@@ -46,35 +46,25 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      console.log('[CLIENT] Sending login request...');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important: include cookies
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
-      console.log('[CLIENT] Response status:', response.status);
-      console.log('[CLIENT] Response headers:', Object.fromEntries(response.headers.entries()));
-
       const data = await response.json();
-      console.log('[CLIENT] Response data:', data);
 
       if (data.success) {
-        console.log('[CLIENT] Login successful, redirecting to dashboard...');
-        // Wait for cookie to be fully set before redirect
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('[CLIENT] Performing redirect now...');
-        // Force a hard redirect to ensure cookie is sent
+        // Wait briefly for cookie to be set, then redirect
+        await new Promise(resolve => setTimeout(resolve, 300));
         window.location.replace('/admin/dashboard');
       } else {
-        console.log('[CLIENT] Login failed:', data.error);
         setError(data.error || 'Login failed');
       }
     } catch (error) {
-      console.error('[CLIENT] Login error:', error);
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);

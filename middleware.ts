@@ -25,26 +25,19 @@ export async function middleware(request: NextRequest) {
 
   // Admin authentication check for dashboard routes
   if (request.nextUrl.pathname.startsWith('/admin/dashboard')) {
-    console.log('[MIDDLEWARE] Checking auth for:', request.nextUrl.pathname);
     const adminSession = request.cookies.get('admin-session');
-    console.log('[MIDDLEWARE] Cookie exists:', !!adminSession);
-    console.log('[MIDDLEWARE] Cookie value preview:', adminSession?.value?.substring(0, 30) + '...');
 
     if (!adminSession) {
-      console.log('[MIDDLEWARE] No cookie found, redirecting to /admin');
       return NextResponse.redirect(new URL('/admin', request.url));
     }
 
     try {
       // Verify JWT token in Edge runtime
-      console.log('[MIDDLEWARE] Verifying JWT token...');
       const secret = new TextEncoder().encode(JWT_SECRET);
-      const verified = await jwtVerify(adminSession.value, secret);
-      console.log('[MIDDLEWARE] JWT verified successfully, user:', verified.payload);
+      await jwtVerify(adminSession.value, secret);
       // Token is valid, allow access
     } catch (error) {
       // Token is invalid or expired, redirect to login
-      console.error('[MIDDLEWARE] JWT verification failed:', error);
       const response = NextResponse.redirect(new URL('/admin', request.url));
       response.cookies.delete('admin-session');
       return response;
