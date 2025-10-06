@@ -8,12 +8,46 @@ import type { Category } from '@/types';
 export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log('[DASHBOARD] Checking authentication...');
+        const response = await fetch('/api/auth/check', {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        console.log('[DASHBOARD] Auth check result:', data);
+
+        if (!data.authenticated) {
+          console.log('[DASHBOARD] Not authenticated, redirecting to login...');
+          router.replace('/admin');
+          return;
+        }
+        console.log('[DASHBOARD] Authenticated, loading dashboard...');
+      } catch (error) {
+        console.error('[DASHBOARD] Auth check error:', error);
+        router.replace('/admin');
+        return;
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories?ts=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-store' } });
+      const response = await fetch('/api/categories?ts=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-store' },
+        credentials: 'include',
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -60,15 +94,17 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (!isCheckingAuth) {
+      fetchCategories();
+    }
+  }, [isCheckingAuth]);
 
-  if (isLoading) {
+  if (isCheckingAuth || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-gray-600">{isCheckingAuth ? 'Checking authentication...' : 'Loading dashboard...'}</p>
         </div>
       </div>
     );

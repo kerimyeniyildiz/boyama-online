@@ -64,8 +64,14 @@ export default function AdminLoginPage() {
 
       if (data.success) {
         console.log('[CLIENT] Login successful, redirecting to dashboard...');
+        // Wait a bit for cookie to be set, then redirect
+        await new Promise(resolve => setTimeout(resolve, 100));
         // Force a hard redirect to ensure cookie is sent
-        window.location.href = '/admin/dashboard';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/admin/dashboard';
+        } else {
+          router.push('/admin/dashboard');
+        }
       } else {
         console.log('[CLIENT] Login failed:', data.error);
         setError(data.error || 'Login failed');

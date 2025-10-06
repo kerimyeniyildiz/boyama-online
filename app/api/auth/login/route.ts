@@ -142,23 +142,19 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
     });
 
-    const cookieOptions = {
+    // Set cookie using Next.js response.cookies.set (this is the correct way)
+    response.cookies.set({
       name: 'admin-session',
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const, // Changed from 'strict' to 'lax' for better compatibility
+      sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
-    };
+    });
 
-    console.log('[LOGIN] Setting cookie with options:', { ...cookieOptions, value: `${token.substring(0, 20)}...` });
-    response.cookies.set(cookieOptions);
-
-    // Also set cookie in response headers as backup
-    const cookieString = `admin-session=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''} SameSite=Lax; Max-Age=${24 * 60 * 60}`;
-    response.headers.set('Set-Cookie', cookieString);
-    console.log('[LOGIN] Also setting cookie via header:', cookieString.substring(0, 50) + '...');
+    console.log('[LOGIN] Cookie set successfully');
+    console.log('[LOGIN] Token preview:', token.substring(0, 30) + '...');
 
     // Clear rate limit on successful login
     loginAttempts.delete(getRateLimitKey(ip));
