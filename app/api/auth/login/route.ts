@@ -147,13 +147,18 @@ export async function POST(request: NextRequest) {
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
+      sameSite: 'lax' as const, // Changed from 'strict' to 'lax' for better compatibility
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
     };
 
     console.log('[LOGIN] Setting cookie with options:', { ...cookieOptions, value: `${token.substring(0, 20)}...` });
     response.cookies.set(cookieOptions);
+
+    // Also set cookie in response headers as backup
+    const cookieString = `admin-session=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''} SameSite=Lax; Max-Age=${24 * 60 * 60}`;
+    response.headers.set('Set-Cookie', cookieString);
+    console.log('[LOGIN] Also setting cookie via header:', cookieString.substring(0, 50) + '...');
 
     // Clear rate limit on successful login
     loginAttempts.delete(getRateLimitKey(ip));
