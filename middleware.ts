@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-// Edge runtime doesn't support Node's Buffer. Declare atob for decoding.
-// eslint-disable-next-line no-var
-declare var atob: (s: string) => string;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // CSRF protection for state-changing methods
   const isStateMutatingMethod = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
   const isApiRoute = request.nextUrl.pathname.startsWith('/api/');
@@ -24,12 +23,8 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Admin authentication check
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (request.nextUrl.pathname === '/admin') {
-      return NextResponse.next();
-    }
-
+  // Admin authentication check for dashboard routes
+  if (request.nextUrl.pathname.startsWith('/admin/dashboard')) {
     const adminSession = request.cookies.get('admin-session');
 
     if (!adminSession) {
@@ -37,19 +32,12 @@ export function middleware(request: NextRequest) {
     }
 
     try {
-      const decoded = typeof atob === 'function' ? atob(adminSession.value) : '';
-      const [username, timestamp] = (decoded || '').split(':');
-
-      const sessionTime = parseInt(timestamp);
-      const currentTime = Date.now();
-      const maxAge = 24 * 60 * 60 * 1000;
-
-      if (!sessionTime || currentTime - sessionTime > maxAge) {
-        const response = NextResponse.redirect(new URL('/admin', request.url));
-        response.cookies.delete('admin-session');
-        return response;
-      }
+      // Verify JWT token in Edge runtime
+      const secret = new TextEncoder().encode(JWT_SECRET);
+      await jwtVerify(adminSession.value, secret);
+      // Token is valid, allow access
     } catch (error) {
+      // Token is invalid or expired, redirect to login
       const response = NextResponse.redirect(new URL('/admin', request.url));
       response.cookies.delete('admin-session');
       return response;
