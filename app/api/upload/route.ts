@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file');
     const categoryParam = formData.get('category');
 
-    if (!(file instanceof File)) {
+    // Check if file exists (works in both browser and Node.js)
+    if (!file || typeof file === 'string') {
       return NextResponse.json(
         {
           success: false,
@@ -93,8 +94,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get file as Blob (compatible with both File and Blob)
+    const fileBlob = file as Blob;
+
     // Check file size
-    if (file.size > MAX_FILE_SIZE) {
+    if (fileBlob.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           success: false,
@@ -105,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get file buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = Buffer.from(await fileBlob.arrayBuffer());
 
     // Validate file using magic bytes
     const validation = await validateImageFile(buffer);
