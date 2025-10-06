@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { mkdir, writeFile } from 'fs/promises';
 import fs from 'fs';
 import path from 'path';
@@ -183,6 +184,10 @@ export async function POST(request: NextRequest) {
 
     // Get updated category
     const updatedCategory = await getCategoryBySlug(normalizedSlug);
+
+    // Revalidate category page and homepage
+    revalidatePath(`/${normalizedSlug}`);
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,
