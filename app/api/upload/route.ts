@@ -196,11 +196,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Error uploading file:', error);
+    console.error('Upload error:', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error message:', error?.message);
+
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to upload file',
+        error: error?.message || 'Failed to upload file',
       },
       { status: 500 }
     );
