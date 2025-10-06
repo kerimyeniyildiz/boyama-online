@@ -17,26 +17,42 @@ interface JWTPayload {
  * Validate user credentials with bcrypt
  */
 export async function validateCredentials(username: string, password: string): Promise<boolean> {
+  console.log('[AUTH] validateCredentials called');
+  console.log('[AUTH] Expected username:', ADMIN_USERNAME);
+  console.log('[AUTH] Received username:', username);
+  console.log('[AUTH] Password hash exists:', !!ADMIN_PASSWORD_HASH);
+  console.log('[AUTH] JWT_SECRET exists:', !!JWT_SECRET);
+
   if (!username || !password) {
+    console.log('[AUTH] Missing username or password');
     return false;
   }
 
   // Check username
   if (username !== ADMIN_USERNAME) {
+    console.log('[AUTH] Username mismatch');
     return false;
   }
 
   // For development: allow plain text password if hash not set
   if (!ADMIN_PASSWORD_HASH) {
+    console.log('[AUTH] No password hash set, using plain text comparison');
     const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    return password === defaultPassword;
+    console.log('[AUTH] Default password:', defaultPassword);
+    const result = password === defaultPassword;
+    console.log('[AUTH] Plain text comparison result:', result);
+    return result;
   }
 
   // Verify password with bcrypt
   try {
-    return await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+    console.log('[AUTH] Verifying password with bcrypt...');
+    console.log('[AUTH] Hash to compare against:', ADMIN_PASSWORD_HASH.substring(0, 20) + '...');
+    const result = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+    console.log('[AUTH] Bcrypt comparison result:', result);
+    return result;
   } catch (error) {
-    console.error('Password verification error:', error);
+    console.error('[AUTH] Password verification error:', error);
     return false;
   }
 }
