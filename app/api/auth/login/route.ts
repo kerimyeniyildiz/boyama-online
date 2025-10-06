@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Build cookie string manually for better control
-    const isProduction = process.env.NODE_ENV === 'production';
+    // NOTE: Not setting Secure for HTTP testing - will add back for HTTPS
     const cookieParts = [
       `admin-session=${token}`,
       'Path=/',
@@ -152,9 +152,8 @@ export async function POST(request: NextRequest) {
       `Max-Age=${24 * 60 * 60}`,
     ];
 
-    if (isProduction) {
-      cookieParts.push('Secure');
-    }
+    // Don't set Secure flag for now (testing on HTTP domain)
+    // Will need Secure flag when using HTTPS in production
 
     const cookieString = cookieParts.join('; ');
 
